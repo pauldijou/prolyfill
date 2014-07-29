@@ -95,6 +95,9 @@
     if (opts.fallback === undefined) {
       opts.fallback = Prolyfill.defaults.fallback;
     }
+    if (opts.global === undefined) {
+      opts.global = Prolyfill.defaults.global;
+    }
 
     if (!lib) {
       // If there is no lib, it just means that we will only use the native implementation
@@ -213,7 +216,8 @@
       // Let's tag our result to override it if necessary
       PromiseResult.prolyfilled = true;
 
-      if (opts.override || !hasNativePromise || context.Promise.prolyfilled) {
+      if (opts.override ||
+        (opts. global && (!hasNativePromise || context.Promise.prolyfilled))) {
         context.Promise = PromiseResult;
       }
 
@@ -223,7 +227,8 @@
 
   Prolyfill.defaults = {
     override: false,
-    fallback: true
+    fallback: true,
+    global: true
   };
 
   return Prolyfill;
