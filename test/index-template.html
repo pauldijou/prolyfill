@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Promises/A+ Tests, Against Your Browser!</title>
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/mocha/1.20.1/mocha.css" />
+  <style>
+    #info {
+      padding: 20px 10px 0 20px;
+      color: #888;
+    }
+  </style>
+</head>
+<body>
+  <div id="info"></div>
+  <div id="mocha"></div>
+
+  %SCRIPTS%
+  <script src="//cdnjs.cloudflare.com/ajax/libs/chai/1.9.1/chai.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/mocha/1.20.1/mocha.js"></script>
+  <script src="/prolyfill.js"></script>
+  <script>
+    var configuration;
+    try {
+      configuration = JSON.parse('%CONFIGURATION%');
+      configuration.debug = true;
+    } catch (e) {}
+
+    Prolyfill(%LIBRARY_GLOBAL%, configuration);
+
+    if (Promise.prolyfilled) {
+      document.getElementById('info').innerHTML = 'Using the polyfilled version';
+    } else {
+      document.getElementById('info').innerHTML = 'Using the native version';
+    }
+
+    mocha.setup({ ui: 'bdd', timeout: 250, slow: Infinity });
+
+    global.adapter = {
+      deferred: function () {
+        var deferred = {};
+        deferred.promise = new Promise(function (resolve, reject) {
+          deferred.resolve = resolve;
+          deferred.reject = reject;
+        });
+        return deferred;
+      },
+      resolved: Promise.resolve.bind(Promise),
+      rejected: Promise.reject.bind(Promise)
+    };
+  </script>
+  <script src="%TEST_URL%"></script>
+  <script>
+      mocha.run();
+  </script>
+</body>
+</html>

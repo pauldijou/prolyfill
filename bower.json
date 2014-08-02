@@ -1,0 +1,13 @@
+{
+  "name": "prolyfill",
+  "dependencies": {
+    "bluebird": "*",
+    "q": "< 2.x.x",
+    "rsvp": "*",
+    "when": "*",
+    "vow": "*",
+    "promise": "then/promise",
+    "lie": "*",
+    "davy": "*"
+  }
+}
