@@ -20,7 +20,7 @@ Polyfill Promises A+ spec with the JavaScript library of your choice.
 ### Using Bower
 
 ~~~ shell
-bower install "pauldijou/prolyfill"
+bower install prolyfill
 ~~~
 
 ### Using NPM
