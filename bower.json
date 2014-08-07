@@ -2,6 +2,7 @@
   "name": "prolyfill",
   "version": "0.0.2",
   "main": "prolyfill.js",
+  "ignore": [],
   "devDependencies": {
     "bluebird": "*",
     "q": "< 2.x.x",
