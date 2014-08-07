@@ -1,6 +1,6 @@
 {
   "name": "prolyfill",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Polyfill Promises A+ spec with the JavaScript library of your choice.",
   "author": "Paul Dijou <paul.dijou@gmail.com>",
   "main": "prolyfill.js",

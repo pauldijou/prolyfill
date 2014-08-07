@@ -105,17 +105,15 @@
   //   - fallback (default: true): if set to true, will try to return the
   //     native promise if possible, otherwise, will normalize lib
   function Prolyfill(lib, opts) {
-    // Default options
     opts = opts || {};
-    if (opts.override === undefined) {
-      opts.override = Prolyfill.defaults.override;
+
+    // Default options
+    for (var field in Prolyfill.defaults) {
+      if (opts[field] === undefined) {
+        opts[field] = Prolyfill.defaults[field];
+      }
     }
-    if (opts.fallback === undefined) {
-      opts.fallback = Prolyfill.defaults.fallback;
-    }
-    if (opts.global === undefined) {
-      opts.global = Prolyfill.defaults.global;
-    }
+
     if (opts.debug) {
       debugEnabled = true;
       debug('Debug enabled');
@@ -175,14 +173,14 @@
                 this._promise = deferred.promise;
               }
             } else {
-              debug('/!\\ Could not find a [promise] from the deferred');
+              debug('⚠ Could not find a [promise] from the deferred');
             }
 
             function resolve(value) {
               if (deferred && deferred.resolve) {
                 deferred.resolve(value);
               } else {
-                debug('/!\\ Could not [resolve] the promise');
+                debug('⚠ Could not [resolve] the promise');
               }
             }
 
@@ -190,7 +188,7 @@
               if (deferred && deferred.reject) {
                 deferred.reject(reason);
               } else {
-                debug('/!\\ Could not [reject] the promise');
+                debug('⚠ Could not [reject] the promise');
               }
             }
 
@@ -208,7 +206,7 @@
               if (this._promise && this._promise.then) {
                 return this._promise.then(onFulfilled, onRejected);
               } else {
-                debug('/!\\ The deferred promise does not have a [then] method.');
+                debug('⚠ The deferred promise does not have a [then] method.');
               }
             },
 
@@ -218,7 +216,7 @@
               } else if (this._promise && this._promise.then) {
                 return this._promise.then(null, onRejected);
               } else {
-                debug('/!\\ The deferred promise does not have a [catch] method nor a [then] one.');
+                debug('⚠ The deferred promise does not have a [catch] method nor a [then] one.');
               }
             }
           }
@@ -311,12 +309,6 @@
             });
           };
       }
-
-      // Extend Promise with non spec features
-      for (var i = 0, l = extensions.length; i < l; ++i) {
-        extensions[i].call(Profyfill, PromiseResult, lib, opts);
-      }
-
       // Let's tag our result to override it if necessary
       debug('Tagging the result as [prolyfilled]');
       PromiseResult.prolyfilled = true;
@@ -345,7 +337,7 @@
                 debug('Could not find a [done] function, using [then] as a fallback.')
                 return this._promise.then(onFulfilled, onRejected);
               } else {
-                debug('/!\\ The deferred promise does not have a [done] method nor a [then] one.');
+                debug('⚠ The deferred promise does not have a [done] method nor a [then] one.');
               }
             };
           }
@@ -387,6 +379,11 @@
             };
           }
         });
+      }
+
+      // Extend Promise with non spec features
+      for (var i = 0, l = extensions.length; i < l; ++i) {
+        extensions[i].call(Profyfill, PromiseResult, lib, opts);
       }
 
       return PromiseResult;

@@ -4,14 +4,40 @@ Polyfill Promises A+ spec with the JavaScript library of your choice.
 
 ## Table of content
 
-* How to use it
-  * as a final user
-  * as a library writer
-* Supported libraries
-* API
-* Options
-* Examples
-* Extend
+* [Installation](#installation)
+* [How to use it](#how-to-use-it)
+  * [as a final user](#as-a-final-user)
+  * [as a library / framework developer](#as-a-library--framework-developer)
+* [Supported libraries](#supported-libraries)
+* [API](#api)
+* [Options](#options)
+* [Examples](#examples)
+* [Extend](#extend)
+* [Tests](#tests)
+
+## Installation
+
+### Using Bower
+
+~~~ shell
+bower install "pauldijou/prolyfill"
+~~~
+
+### Using NPM
+
+~~~ shell
+npm install prolyfill
+~~~
+
+### Using a CDN
+
+Coming soon...
+
+### Using script
+
+~~~ markup
+<script src="https://rawgit.com/pauldijou/prolyfill/master/prolyfill.js"></script>
+~~~
 
 ## How to use it
 
@@ -35,18 +61,26 @@ var Promise = require('prolyfill')(require('q'));
 
 **Important** Be sure to set `{global: false}` in options so your lib does not write anything inside the global object.
 
-If your library needs to use promises but you know that native support isn't good enough right now and you don't want to impose an implementation to your final users, Prolyfill is exactly what your need! Just ask users what lib they want to use, prolyfill it, and write all your code using the spec syntax.
+If your library needs to use promises but you know that [native support isn't good enough](http://caniuse.com/#feat=promises) right now and you don't want to impose an implementation to your final users, Prolyfill is exactly what your need! Just ask users what lib they want to use, prolyfill it, and write all your code using the spec syntax.
 
 ~~~ javascript
-var Q = require('q'), prolyfill = require('prolyfill');
-// Important: notice the option 'global' set to 'false'
-// so that Prolyfill does not leak anything inside the global object
-var Promise = prolyfill(Q, {global: false});
+var Prolyfill = require('prolyfill');
+
+// We are exposing the library as a function accepting at least one attribute
+// which is the promise implementation chosen by the final user
+return function (lib) {
+  // Important: notice the option 'global' set to 'false'
+  // so that Prolyfill does not leak anything inside the global object
+  // Also, we will use Q as a fallback if no lib is provided
+  // assure backward compatibility
+  var Promise = prolyfill(lib || require('q'), {global: false});
+  // Do your stuff...
+};
 ~~~
 
 ## Supported libraries
 
-* [bluelbird](https://github.com/petkaantonov/bluebird)
+* [bluebird](https://github.com/petkaantonov/bluebird)
 * [Q](https://github.com/kriskowal/q)
 * [when](https://github.com/cujojs/when)
 * [RSVP](https://github.com/tildeio/rsvp.js)
@@ -56,11 +90,28 @@ var Promise = prolyfill(Q, {global: false});
 * [deferred](https://github.com/medikoo/deferred)
 * [davy](https://github.com/lvivski/davy)
 
-Want to add another one? Just fill an issue asking for it or directly create a pull request.
+Want to add another one? Just fill [an issue](https://github.com/pauldijou/prolyfill/issues) asking for it or directly create a [pull request](https://github.com/pauldijou/prolyfill/pulls).
 
 ## API
 
+`Prolifyll` is a function which takes 2 attributes:
 
+* the library you want to use as the polyfill in case the native Promise implementation isn't present.
+* some options, as an object, allowing you to customize how you want to render the polyfill. See the following section for more informations about options.
+
+~~~ javascript
+// Really super simple example
+Prolyfill(window.RSVP, {fallback: true});
+~~~
+
+You can override `Prolyfill` default options by using `Prolyfill.defaults`.
+
+~~~ javascript
+// Now, you will no override window.Promise by default
+Prolyfill.defaults.global = false;
+~~~
+
+You can extend the returned polyfill by using `Prolyfill.extend`. See the [extend](#extend) section for more informations about it.
 
 ## Options
 
@@ -70,6 +121,8 @@ Want to add another one? Just fill an issue asking for it or directly create a p
 * **debug** (default: `false`): if true, will try to display a few messages in the console while creating the polyfill
 
 ## Examples
+
+### Simple use-case inside a browser
 
 ~~~ javascript
 Prolyfill(window.Q);
@@ -84,6 +137,10 @@ promise
   .then(function (value) { /* All good! */ })
   .catch(functon (reason) { /* Looks like we failed... */ });
 ~~~
+
+### Refactor NPM module
+
+This is a super powerful that display a `console.log` and resolve a promise after 100ms. At first, it was using Q as promise implementation, but now it will go under a huge refactoring to support any lib and use it to polyfill Promise (meaning it will also try to use the native implementation). The refactoring is fully backward-compatible.
 
 ~~~ javascript
 // Before
@@ -101,13 +158,14 @@ module.exports = {
 };
 
 // After (a bit verbose, but that's backward compatibility for you)
-var Q = require('q'), prolyfill = require('prolyfill');
+var Q = require('q'), Prolyfill = require('prolyfill');
 // Important: notice the option 'global' set to 'false'
 // so that Prolyfill does not leak anything inside the global object
-var Promise = prolyfill(Q, {global: false});
+var Promise = Prolyfill(Q, {global: false});
 
 function MyAwesomeLib(promiseLib) {
-  Promise = prolyfill(promiseLib, {global: false});
+  Promise = Prolyfill(promiseLib, {global: false});
+  return MyAwesomeLib;
 }
 
 MyAwesomeLib.doAwesome = function () {
@@ -122,20 +180,47 @@ MyAwesomeLib.doAwesome = function () {
 module.exports = MyAwesomeLib;
 ~~~
 
-And for the user, it will translate to the following:
+And for the final user, it will translate to the following:
 
 ~~~ javascript
-// Before, when using your lib
-var awesomeLib = require('awesomeLib');
+// Before, when using the lib
+require('awesomeLib').doAwesome().then(...);
 
 // After
 // Can still do as before and use the default promise lib (here, Q)
-var awesomeLib = require('awesomeLib');
+require('awesomeLib').doAwesome().then(...);
 // Or impose a new promise lib
 var bluebird = require('bluebird');
-var awesomeLib = require('awesomeLib')(bluebird);
+require('awesomeLib')(bluebird).doAwesome().then(...);
 ~~~
 
 ## Extend
 
 Work in progress...
+
+## Tests
+
+### Manual testing
+
+Setup a local environment
+
+~~~ shell
+npm install
+bower install
+gulp build:test
+~~~
+
+Start the test server
+
+~~~ shell
+gulp serve
+~~~
+
+Browse the tests at [http://localhost:8000/test/build](http://localhost:8000/test/build), pick a library and then choose an HTML file to run a set of test based on a particular configuration. Naming convention is `[test name]-[configuration name].html`.
+
+* [http://localhost:8000/test/build/bluebird/basic-override.html](http://localhost:8000/test/build/bluebird/basic-override.html) will prolyfill **bluebird** and run the **basic** tests (from [here](https://github.com/pauldijou/prolyfill/blob/master/test/basic.js)) using the **override** configuration.
+* [http://localhost:8000/test/build/rsvp/promiseAplus-none.html](http://localhost:8000/test/build/rsvp/promiseAplus-none.html) will prolyfill **RSVP** and run all **Promise A+** test (from [here](https://github.com/promises-aplus/promises-tests)) using the **none** configuration.
+
+### Automated testing
+
+Coming soon...

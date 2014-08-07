@@ -1,6 +1,8 @@
 {
   "name": "prolyfill",
-  "dependencies": {
+  "version": "0.0.2",
+  "main": "prolyfill.js",
+  "devDependencies": {
     "bluebird": "*",
     "q": "< 2.x.x",
     "rsvp": "*",
